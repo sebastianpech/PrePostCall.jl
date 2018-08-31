@@ -1,0 +1,7 @@
+name = "PrePostCall"
+uuid = "75ea050c-ac48-11e8-3ca6-5d0a9bde5671"
+authors = ["Sebastian Pech <sebastian.pech@me.com>"]
+version = "0.1.0"
+
+[deps]
+MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
