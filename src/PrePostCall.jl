@@ -18,6 +18,37 @@ function get_args_for_call(x::Array{Any,1})
     end
 end
 
+"""
+    @pre function name ...
+ 
+Create a macro `@name [variables] function other ...` for inserting a call to `name` before each call to `other`.
+`variables` defines the variable names passed to `name`, if `variables` is omitted the names of the attributes of `name` are used.
+
+# Examples
+```jldoctest
+julia> @pre function nonzero(x::Int)
+           @assert x!=0
+       end
+@nonzero (macro with 2 methods)
+
+julia> @nonzero @nonzero y function foo(x::Int,y::Int)
+           x+y
+       end
+foo (generic function with 1 method)
+```
+The outer `@nonzero` uses `x` as the attribute due to the function definition of `nonzero`.
+```jldoctest
+julia> foo(1,2)
+3
+
+julia> foo(1,0)
+ERROR: AssertionError: x != 0
+
+julia> foo(0,1)
+ERROR: AssertionError: x != 0
+```
+
+"""
 macro pre(cfun)
     def = splitdef(cfun)
     return esc(quote
@@ -52,6 +83,51 @@ macro pre(cfun)
                end)
 end
 
+"""
+    @post function name ...
+ 
+Create a macro `@name [variables] function other ...` for inserting a call to `name` after each call to `other`.
+`variables` defines the variable names passed to `name`, if `variables` is omitted, `name` is called on the return argument of `other`.
+If `variables` is used, the call to `other` is inserted before each `return`, or if non present, as last expression in `other`.
+
+# Examples
+```jldoctest
+julia> @post function nonzero(x::Int)
+           @assert x!=0
+       end
+@nonzero (macro with 2 methods)
+
+julia> @nonzero function foo(x::Int,y::Int)
+           x*y
+       end
+foo (generic function with 1 method)
+
+julia> foo(1,2)
+2
+
+julia> foo(1,0)
+ERROR: AssertionError: x != 0
+
+julia> @nonzero @nonzero a function foo(x::Int,y::Int)
+           a = x-1
+           return a*y
+       end
+foo (generic function with 1 method)
+
+julia> foo(1,2)
+ERROR: AssertionError: x != 0
+```
+Failes because `a` must be nonzero
+```jldoctest
+julia> foo(2,2)
+2
+
+julia> foo(2,0)
+ERROR: AssertionError: x != 0
+```
+Failes because the return value must be nonzero
+
+"""
 macro post(cfun)
     def = splitdef(cfun)
     # In case the check function has multiple arguments the return value
