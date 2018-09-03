@@ -21,8 +21,13 @@ end
 """
     @pre function name ...
  
-Create a macro `@name [variables] function other ...` for inserting a call to `name` before each call to `other`.
-`variables` defines the variable names passed to `name`, if `variables` is omitted the names of the attributes of `name` are used.
+Create a macro `@name [[variable] variable ...] function other ...` for inserting a call to `name` before each call to `other`.
+
+`variable` defines the variable names passed to `name`. If `variable` is omitted the names of the attributes of `name` are used.
+If multiple variables are given `name` is called on each of them, for example:
+
+- `@name x y z` is just a short notation for `@name x @name y @name z` and calls `name(x)`, `name(y)`, `name(z)`
+- `@name x,y,z` calls `name(x,y,z)`
 
 # Examples
 ```jldoctest
@@ -51,6 +56,7 @@ ERROR: AssertionError: x != 0
 """
 macro pre(cfun)
     def = splitdef(cfun)
+    mname = QuoteNode(Symbol("@$(def[:name])"))
     return esc(quote
                # Define the actual function
                $cfun
@@ -80,15 +86,29 @@ macro pre(cfun)
                    insert!(_def[:body].args,1,Expr(:call,$(def[:name]),:($arg)))
                    esc(PrePostCall.combinedef(_def))
                end
+               macro $(def[:name])(args...)
+                   # The second attribute to a macrocall expression is always a
+                   # LineNumberNode. Here I replaced it by nothing.
+                   clast = Expr(:macrocall,$mname, nothing,args[end-1], args[end])
+                   for i in length(args)-2:-1:1
+                       clast = Expr(:macrocall,$mname, nothing,args[i], clast)
+                   end
+                   return esc(clast)
+               end
                end)
 end
 
 """
     @post function name ...
  
-Create a macro `@name [variables] function other ...` for inserting a call to `name` after each call to `other`.
-`variables` defines the variable names passed to `name`, if `variables` is omitted, `name` is called on the return argument of `other`.
-If `variables` is used, the call to `other` is inserted before each `return`, or if non present, as last expression in `other`.
+Create a macro `@name [[variable] variable ...] function other ...` for inserting a call to `name` after each call to `other`.
+
+`variable` defines the variable names passed to `name`. If `variable` is omitted, `name` is called on the return argument of `other`.
+If `variable` is used, the call to `other` is inserted before each `return`, or if non present, as last expression in `other`.
+If multiple variables are given `name` is called on each of them, for example:
+
+- `@name x y z` is just a short notation for `@name x @name y @name z` and calls `name(x)`, `name(y)`, `name(z)`
+- `@name x,y,z` calls `name(x,y,z)`
 
 # Examples
 ```jldoctest
@@ -134,6 +154,7 @@ macro post(cfun)
     # must be expanded
     # This is only used for the macro without explicit variable definition.
     retExpr = length(def[:args])==1 ? :(Expr(:call,$(def[:name]),:($ret))) : :(Expr(:call,$(def[:name]),Expr(:...,:($ret))))
+    mname = QuoteNode(Symbol("@$(def[:name])"))
     return esc(quote
                $cfun
                # Define the macro without explicit variable definition
@@ -193,6 +214,15 @@ macro post(cfun)
                        push!(_def[:body].args,Expr(:block,Expr(:call,$(def[:name]),:($arg)),:nothing))
                    end
                    esc(PrePostCall.combinedef(_def))
+               end
+               macro $(def[:name])(args...)
+                   # The second attribute to a macrocall expression is always a
+                   # LineNumberNode. Here I replaced it by nothing.
+                   clast = Expr(:macrocall,$mname, nothing,args[end-1], args[end])
+                   for i in length(args)-2:-1:1
+                       clast = Expr(:macrocall,$mname, nothing,args[i], clast)
+                   end
+                   return esc(clast)
                end
                end)
 end

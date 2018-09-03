@@ -158,6 +158,26 @@ end
         @test_throws NSmallerException foo(2,1)
         @test foo(1,2) == (1,2)
     end
+
+    @testset "Short Syntax explicit Pre" begin
+        @positive x @positive y z function foo(x,y,z)
+            return (x,y,z)
+        end
+        @test foo(1,2,3) == (1,2,3)
+        @test_throws NNegativeException foo(-1,2,3) 
+        @test_throws NNegativeException foo(1,-2,3) 
+        @test_throws NNegativeException foo(1,2,-3) 
+    end
+
+    @testset "Short Syntax explicit Post" begin
+        @not0 x @not0 y z function foo(x,y,z)
+            return (x,y,z)
+        end
+        @test foo(1,2,3) == (1,2,3)
+        @test_throws NZeroException foo(0,2,3) 
+        @test_throws NZeroException foo(1,0,3) 
+        @test_throws NZeroException foo(1,2,0) 
+    end
     
 end
 
