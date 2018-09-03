@@ -1,8 +1,10 @@
 # PrePostCall
 
-PrePostCall is a package which offers a intuitive syntax for making precing and subseqent function calls to other functions.
+PrePostCall is a package which offers an intuitive syntax for making preceding and subseqent function calls to other functions.
 
 ## Usage
+
+### Simple Example
 
 Here is a very simple example showing how to define a macro with PrePostCall which checks that 
 
@@ -38,10 +40,12 @@ julia> foo(1,2,0)
 ERROR: The return value is Inf
 ```
 
+### Example with a mutable struct
+
 In the following toy example you have a `mutable struct` where one field can either be an `Int` or `nothing`.
 A function that is called with this `mutable struct` should only be usable if the field is **not** `nothing`.
 Another function that is called with this `mutable struct` should only be usable if the field is **not** `nothing` and **at least** has a value of `3`.
-(This example is minimized to show the illustrated the usage of PrePostCall.)
+(This example is minimized to illustrated the usage of PrePostCall.)
 
 First define the struct:
 
@@ -67,7 +71,7 @@ The actual functions used on the `mutable type` can now be created with a clear,
 
 If no variable names are given for the newly created macros, the variables checked are assumed to have the same name as the ones used on the `@pre` (or `@post`) definitions.
 
-Calls to the define function with various `Bar`-types now result in the following:
+Calls to the defined function with various `Bar`-types now result in the following:
 
 ``` julia
 julia> a = Bar(1)
