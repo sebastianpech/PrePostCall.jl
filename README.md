@@ -1,6 +1,6 @@
 # PrePostCall
 
-PrePostCall is a package which offers an intuitive syntax for making preceding and subseqent function calls to other functions.
+PrePostCall is a package which offers an intuitive syntax for making preceding and subsequent function calls to other functions using macros.
 
 ## Usage
 
