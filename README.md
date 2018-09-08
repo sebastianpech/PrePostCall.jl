@@ -2,6 +2,8 @@
 
 PrePostCall is a package which offers an intuitive syntax for making preceding and subsequent function calls to other functions using macros.
 
+[![Build Status](https://travis-ci.org/sebastianpech/PrePostCall.jl.svg?branch=master)](https://travis-ci.org/sebastianpech/PrePostCall.jl)
+
 ## Usage
 
 ### Simple Example
